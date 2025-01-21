@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      background-color: #0083bb;
+    }
+
+    h1 {
+      color: #fff;
+      margin: 20px;
+    }
+
+    .quiz-container,
+    .result-container {
+      background-color: #fff;
+      border-radius: 10px;
+      width: 400px;
+      box-shadow: 0 0 10px 2px rgba(100, 100, 100, 0.1);
+    }
+
+    .quiz-header {
+      padding: 10px;
+    }
+
+    h2 {
+      padding: 10px;
+      font-size: 16px;
+      text-transform: capitalize;
+    }
+
+    ul {
+      list-style-type: none;
+    }
+
+    ul li {
+      font-size: 16px;
+      margin: 10px 0;
+    }
+
+    ul li label {
+      cursor: pointer;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .actions button {
+      background-color: #33a1eb;
+      border: none;
+      color: #fff;
+      width: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 10px;
+    }
+
+    #prev {
+      background-color: #858585;
+    }
+
+    .result-container {
+      display: none;
+    }
+
+    .correct {
+      background-color: #74e5a5;
+      padding: 0 20px;
+    }
+
+    .wrong {
+      background-color: #feb2b2;
+      padding: 0 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Quiz App using html</h1>
+  <div class="quiz-container" id="quiz">
+    <div class="quiz-header">
+      <h2 id="question">first name</h2>
+      <ul>
+        <li>
+          <input type="radio" name="answer" id="a" class="answer">
+          <label for="a" class="op_label" id="a_text">option1</label>
+        </li>
+        <li>
+          <input type="radio" name="answer" id="b" class="answer">
+          <label for="b" class="op_label" id="b_text">option1</label>
+        </li>
+        <li>
+          <input type="radio" name="answer" id="c" class="answer">
+          <label for="c" class="op_label" id="c_text">option1</label>
+        </li>
+        <li>
+          <input type="radio" name="answer" id="d" class="answer">
+          <label for="d" class="op_label" id="d_text">option1</label>
+        </li>
+      </ul>
+      <div class="actions">
+        <button id="prev">Previous</button>
+        <button id="next">Next</button>
+        <button id="submit">Submit</button>
+        <button id="reload" onclick="location.reload()">Reload</button>
+      </div>
+    </div>
+  </div>
+  <div class="result-container" id="result">
+    <h2 id="score"></h2>
+    <div class="actions">
+      <button onclick="location.reload()">Reload</button>
+      <button id="showAns" onclick="loadAnswers()">ShowAnswers</button>
+    </div>
+  </div>
+  <script>
+    const quizData = [{
+      question: "What is the true spelling?",
+      a: "Weird",
+      b: "Wierd",
+      c: "Weerd",
+      d: "Weard",
+      correct: "b",
+    },
+    {
+      question: "What is the true spelling?",
+      a: "Definitely",
+      b: "Defenitely",
+      c: "Definitly",
+      d: "Definetely",
+      correct: "a",
+    },
+
+    {
+      question: "What is the true spelling?",
+      a: "Mantenance",
+      b: "Maintenance",
+      c: "Miantenance",
+      d: "Maintenence",
+      correct: "b",
+    },
+
+    {
+      question: "What is the true spelling?",
+      a: "Brocoli",
+      b: "Broccolli",
+      c: "Broccolee",
+      d: "Broccoli",
+      correct: "d",
+    },
+
+    {
+      question: "What is the true spelling?",
+      a: "Consensus",
+      b: "Consansus",
+      c: "Consenses",
+      d: "Consensuse",
+      correct: "c",
+    }
+    ];
+    const userselected = {}
+    const quiz = document.getElementById("quiz");
+    const resultEle = document.getElementById("result");
+    const answerEls = document.querySelectorAll(".answer");
+    const labelEls = document.querySelectorAll(".op_label");
+    const questionEle = document.getElementById("question");
+    const a_text = document.getElementById("a_text");
+    const b_text = document.getElementById("b_text");
+    const c_text = document.getElementById("c_text");
+    const d_text = document.getElementById("d_text");
+    const prevBtn = document.getElementById("prev");
+    const nextBtn = document.getElementById("next");
+    const submitBtn = document.getElementById("submit");
+    const scoreEle = document.getElementById("score");
+    const reloadBtn = document.getElementById("reload");
+
+    let currentQtn = 0;
+    let answered = 0;
+    let submitted = false;
+
+    loadquiz();
+    function loadquiz() {
+      questionEle.innerText = quizData[currentQtn].question;
+      a_text.innerText = quizData[currentQtn].a;
+      b_text.innerText = quizData[currentQtn].b;
+      c_text.innerText = quizData[currentQtn].c;
+      d_text.innerText = quizData[currentQtn].d;
+      deselectAnswer()
+
+      if (userselected[currentQtn]) {
+        let selected = userselected[currentQtn];
+        document.getElementById(selected).checked = true
+      }
+
+      if (currentQtn == quizData.lenghth - 1) {
+        nextBtn.style.display = "none";
+        if (submitted) {
+          submitBtn.style.display = "none";
+          reloadBtn.style.display = "block";
+        }
+        else {
+          submitBtn.style.display = "block";
+          reloadBtn.style.display = "none";
+        }
+      }
+      if (submitted) {
+
+        let actualAns = quizData[currentQtn].correct;
+        let userselected = userselected[currentQtn];
+        labelEls.forEach(
+          (labelEle) => {
+            labelEle.classlist.remove('correct');
+            labelEle.classlist.remove('wrong');
+          }
+        )
+        if (actualAns == userselected) {
+
+          let op = actualAns + "_text";
+          document.getElementById(op).classlist.add('correct')
+        }
+        else {
+          let correct_op = actualAns + "_text";
+          document.getElementById(correct_op).classlist.add('correct');
+          let user_op = userselected + "_text";
+          document.getElementById(user_op).classlist.add('wrong')
+        }
+      }
+
+
+    }
+    function deselectAnswer() {
+      answerEls.forEach(
+        (answerEle) => {
+          answerEle.checked = false
+        }
+      )
+    }
+
+    nextBtn.addEventListener(
+      'click', () => {
+        const answer = getselected();
+        if (!submitted) {
+          if (answer) {
+            if (answer == quizData[currentQtn].correct) {
+              answered++
+            }
+            currentQtn++;
+            if (currentQtn < quizData.length) {
+              loadquiz();
+            }
+          }
+        }
+        else {
+          currentQtn++;
+          loadquiz();
+        }
+      }
+    )
+    prevBtn.addEventListener(
+      "click", () => {
+        if (currentQtn > 0) {
+          currentQtn--;
+          loadquiz();
+        }
+      }
+    )
+    submitBtn.addEventListener(
+      'click', () => {
+        if (getselected()) {
+          submitted = true;
+          quiz.style.display = "none";
+          resultEle.style.display = "block";
+          scoreEle.innerText = answered + "/" + quizData.length + "questions answered"
+        }
+      }
+    )
+    function getselected() {
+      let answer;
+      answerEls.forEach(
+        (answerEle) => {
+          if (answerEle.checked) {
+            answer = answerEle.id;
+            userselected[currentQtn] = answer
+          }
+        }
+      )
+      return answer
+    }
+    function loadAnswers() {
+      currentQtn = 0;
+      quiz.style.display = "block";
+      resultEle.style.display = "none";
+      answerEls.forEach(
+        (answerEle) => {
+          answerEle.disabled = true;
+        }
+      )
+      submitBtn.style.display = "none";
+      nextBtn.style.display = "block";
+      loadquiz();
+
+
+
+    }
+
+  </script>
+
+</body>
+
+</html>
